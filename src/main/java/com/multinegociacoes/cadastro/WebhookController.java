@@ -15,37 +15,50 @@ public class WebhookController {
 
     @PostMapping
     public ResponseEntity<?> receberMensagem(@RequestBody Map<String, Object> payload) {
-        Map<String, Object> message = (Map<String, Object>) payload.get("message");
-        String texto = message.get("text").toString();
+        try {
+            if (!payload.containsKey("message")) {
+                return ResponseEntity.badRequest().body("Campo 'message' ausente.");
+            }
 
-        switch (etapa) {
-            case 0:
-                dados.put("NOME_COMPLETO", texto);
-                enviarMensagem("Qual seu CPF?");
-                break;
-            case 1:
-                dados.put("CPF", texto);
-                enviarMensagem("Qual seu RG?");
-                break;
-            case 2:
-                dados.put("RG", texto);
-                enviarMensagem("Qual sua data de nascimento?");
-                break;
-            case 3:
-                dados.put("DATA_NASC", texto);
-                enviarMensagem("Qual seu estado civil?");
-                break;
-            case 4:
-                dados.put("ESTADO_CIVIL", texto);
-                enviarMensagem("Cadastro finalizado. PDF gerado.");
-                break;
+            Map<String, Object> message = (Map<String, Object>) payload.get("message");
+            if (message == null || !message.containsKey("text")) {
+                return ResponseEntity.badRequest().body("Campo 'text' ausente na mensagem.");
+            }
+
+            String texto = message.get("text").toString();
+
+            switch (etapa) {
+                case 0:
+                    dados.put("NOME_COMPLETO", texto);
+                    enviarMensagem("Qual seu CPF?");
+                    break;
+                case 1:
+                    dados.put("CPF", texto);
+                    enviarMensagem("Qual seu RG?");
+                    break;
+                case 2:
+                    dados.put("RG", texto);
+                    enviarMensagem("Qual sua data de nascimento?");
+                    break;
+                case 3:
+                    dados.put("DATA_NASC", texto);
+                    enviarMensagem("Qual seu estado civil?");
+                    break;
+                case 4:
+                    dados.put("ESTADO_CIVIL", texto);
+                    enviarMensagem("Cadastro finalizado. PDF gerado.");
+                    break;
+            }
+            etapa++;
+            return ResponseEntity.ok().build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Erro interno no processamento.");
         }
-        etapa++;
-        return ResponseEntity.ok().build();
     }
 
     private void enviarMensagem(String texto) {
-        // Aqui você pode deixar a chamada da Z-API ou só dar log
         System.out.println("BOT: " + texto);
     }
 }
